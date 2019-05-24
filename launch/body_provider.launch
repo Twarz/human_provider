@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="human_provider" type="body_provider_node.py" name="body_provider" output="screen"/>
+    <node pkg="human_provider" type="body_viz.py" name="body_viz" output="screen"/>
+</launch>
