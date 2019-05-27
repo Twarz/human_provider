@@ -1,0 +1,35 @@
+<launch>
+
+  <arg name="what_to_provide" default="both" /> <!-- what_to_provide can be ["both", "only_gaze", "only_body"]-->
+  <arg name="display_markers" default="True" />
+  
+  <group if="$(eval arg('what_to_provide') == 'both')">
+
+    <include file="$(find human_provider)/launch/gaze_provider.launch">
+      <param name="display_markers"  value="False" />
+    </include>
+
+    <include file="$(find human_provider)/launch/body_provider.launch">
+      <param name="display_markers"  value="False" />
+    </include>
+
+    <node pkg="human_provider" type="human_provider_node.py" name="human_ros_provider" output="screen"/>
+    <node pkg="human_provider" type="human_viz.py" name="human_viz" output="screen" if="$(arg display_markers)"/>
+    <node pkg="human_provider" type="uwds_people_bridge.py" name="human_uwds_provider" output="screen"/>
+  </group>
+
+  <group if="$(eval arg('what_to_provide') == 'only_gaze')">
+    <include file="$(find human_provider)/launch/gaze_provider.launch">
+      <param name="display_markers"  value="$(arg display_markers)" />
+    </include>
+    <node pkg="human_provider" type="uwds_people_bridge.py" name="gaze_uwds_provider" output="screen"/>
+  </group>
+
+  <group if="$(eval arg('what_to_provide') == 'only_body')">
+    <include file="$(find human_provider)/launch/body_provider.launch">
+      <param name="display_markers"  value="$(arg display_markers)" />
+    </include>
+    <node pkg="human_provider" type="uwds_people_bridge.py" name="body_uwds_provider" output="screen"/>
+  </group>
+
+</launch>

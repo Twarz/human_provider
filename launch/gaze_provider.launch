@@ -1,3 +1,11 @@
 <launch>
-  TODO
+
+  <arg name="display_markers" default="True" />
+
+  <!-- Perception node: https://github.com/Tobias-Fischer/rt_gene -->
+  <include file="$(find rt_gene)/launch/estimate_gaze.launch"/>
+
+  <!-- Only publish markers for vizualisation -->
+  <node pkg="human_provider" type="gaze_viz.py" name="gaze_viz" output="screen" if="$(arg display_markers)"/>
+
 </launch>
