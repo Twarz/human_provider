@@ -4,5 +4,7 @@
 @Kevin Cortacero <cortacero.k31130@gmail.com>
 """
 
-class GazeProvider(object):
-    pass
+import rospy
+from jsk_recognition_msgs.msg import PeoplePoseArray
+
+# TODO
