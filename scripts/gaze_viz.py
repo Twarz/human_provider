@@ -26,9 +26,9 @@ class GazeViz(object):
         for person in people_pose_array.poses:
             for limb_name, limb_pose in zip(person.limb_names, person.poses):
                 person_id, limb_id = limb_name.split(':')
-                unique_id = int(person_id)*100 + int(limb_id)
+                unique_id = int(person_id)*100 + int(20)
                 
-                m = Marker(pose=limb_pose, id=unique_id, type=Marker.ARROW, action=Marker.ADD, scale=Vector3(x=0.1, y=0.1, z=0.1), color=ColorRGBA(g=1, a=1.0), lifetime=rospy.Time(1))
+                m = Marker(pose=limb_pose, id=unique_id, type=Marker.ARROW, action=Marker.ADD, scale=Vector3(x=0.2, y=0.02, z=0.02), color=ColorRGBA(r=1, a=1.0), lifetime=rospy.Time(1))
                 m.header.frame_id = people_pose_array.header.frame_id
                 m.header.stamp = people_pose_array.header.stamp
                 markers.append(m)
@@ -38,7 +38,7 @@ class GazeViz(object):
 
 if __name__ == '__main__':
     rospy.init_node("body_viz_node") 
-    gaze_topic_sub = "/head_poses"
+    gaze_topic_sub = "/poses/head"
     gaze_topic_pub = '/pose3D_markers'
     GazeViz(gaze_topic_sub, gaze_topic_pub)
     rospy.spin()
