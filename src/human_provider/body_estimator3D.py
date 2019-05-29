@@ -53,7 +53,7 @@ class BodyEstimator3D(object):
         self.body_tracker.clear_elements()
 
     def __filter_body_parts(self, body):
-        return {part_id:part for (part_id, part) in body.items() if part_id not in self.part_id_to_exclude}
+        return {part_id:part for (part_id, part) in body.items() if part_id not in self.part_id_to_exclude and part[2] >= 0.5}
 
     def __project_body_on_disparity(self, bodies, np_depth_img):
         tracked_bodies3D = []
