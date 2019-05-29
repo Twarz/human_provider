@@ -1,19 +1,19 @@
 <launch>
     <arg name="model" default="mobilenet_thin" />
     <arg name="resolution" default="432x368" />
-    <arg name="camera" default="head_mount_kinect2/qhd/image_color_rect" />
+    <arg name="camera" default="head_mount_kinect2/qhd/image_color_rect"/>
 
     <arg name="display_markers" default="True" />
 
     <!-- Perception node: https://github.com/ildoonet/tf-pose-estimation -->
-    <node pkg="tfpose_ros" type="broadcaster_ros.py"  name="open_pose_body2D">
+    <node pkg="tfpose_ros" type="broadcaster_ros.py"  name="open_pose_body2D" required="true">
         <param name="model"  value="$(arg model)" />
         <param name="resolution"  value="$(arg resolution)" />
         <param name="camera"  value="$(arg camera)" />
     </node>
 
     <!-- Convert 2D bodies to 3D bodies, using depth camera -->
-    <node pkg="human_provider" type="body_provider_node.py" name="body_provider" output="screen"/>
+    <node pkg="human_provider" type="body_provider_node.py" name="body_provider" output="screen" required="true"/>
 
     <!-- Only publish markers for vizualisation -->
     <node pkg="human_provider" type="body_viz.py" name="body_viz" output="screen" if="$(arg display_markers)"/>
