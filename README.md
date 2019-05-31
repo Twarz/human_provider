@@ -12,6 +12,8 @@ Up to now, this package contains 2 detectors:
 - 3D human gaze estimation (based on OpenPose)
 The default functioning of this package is to detect a 2D human squeleton and then project it on depth image so we can get the 3D pose of the body. At the same time, RT_GENE provides 3D head/gaze poses (using only rgb image) that we merge with the corresponding body. At the end, we have a full human body with the estimated gaze.
 
+![](https://github.com/Twarz/human_provider/blob/master/misc/graph_human_provider.png)
+
 ###### Notes
 - Only the head estimation is used from RT_GENE from now. 
 - Only the upper half body is used, because of table-top experiments.
