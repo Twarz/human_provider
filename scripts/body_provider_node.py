@@ -31,8 +31,8 @@ class BodyProvider(object):
         camera_info = rospy.wait_for_message(camera_info_topic, CameraInfo)
         self.body_estimator3D = BodyEstimator3D(camera_info)
         self.bridge = CvBridge()
-        self.pose3D_pub = rospy.Publisher('/pose3D', PeoplePoseArray, queue_size=2)
-        self.poses_sub = message_filters.Subscriber('/pose', Persons)
+        self.pose3D_pub = rospy.Publisher('/humans/poses/3D/body', PeoplePoseArray, queue_size=2)
+        self.poses_sub = message_filters.Subscriber('/humans/poses/2D/body', Persons)
         self.depth_sub = message_filters.Subscriber(camera_depth_topic, Image)
         self.ts = message_filters.ApproximateTimeSynchronizer([self.poses_sub, self.depth_sub], 20, 0.1)
         self.ts.registerCallback(self.callback)
@@ -83,7 +83,7 @@ class BodyProvider(object):
 
 
 if __name__ == '__main__':
-    rospy.init_node("body_provider_node") 
+    rospy.init_node("body_provider") 
     camera_info_topic = "/head_mount_kinect2/qhd/camera_info" # "/kinect2/qhd/camera_info"
     camera_depth_topic = '/head_mount_kinect2/qhd/image_depth_rect' # '/kinect2/qhd/image_depth_rect'
     BodyProvider(camera_info_topic, camera_depth_topic)
