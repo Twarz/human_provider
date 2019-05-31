@@ -48,7 +48,7 @@ To only run the gaze provider:
 roslaunch human_provider gaze_provider.launch
 ```
 
-To only run he body provider:
+To only run the body provider:
 ```sh
 roslaunch human_provider body_provider.launch
 ```
