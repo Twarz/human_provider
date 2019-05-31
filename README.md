@@ -16,7 +16,7 @@ Papers:
 - [Hand Keypoint Detection in Single Images using Multiview Bootstrapping](https://arxiv.org/abs/1704.07809)
 - [Convolutional Pose Machines](https://arxiv.org/abs/1602.00134)
 
-(ROS and tensorflow) Github: [tf-pose-estimation](https://github.com/ildoonet/tf-pose-estimation)
+(ROS and tensorflow version) Github: [tf-pose-estimation](https://github.com/ildoonet/tf-pose-estimation)
 
 Original Github: [OpenPose](https://github.com/CMU-Perceptual-Computing-Lab/openpose)
 
