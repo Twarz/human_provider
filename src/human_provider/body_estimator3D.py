@@ -33,7 +33,7 @@ class BodyEstimator3D(object):
         self.image_resolution = np.array([camera_info.width, camera_info.height])
         self.bound_x = [0, self.image_resolution[0] - 1]
         self.bound_y = [0, self.image_resolution[1] - 1]
-        self.kernel_size = 4
+        self.kernel_size = 5
         self.part_id_to_exclude = [8,9,10, 11,12,13, 14,15,16,17, 18]
 
     def estimate(self, bodies2D, np_depth_img):
