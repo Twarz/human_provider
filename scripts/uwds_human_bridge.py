@@ -10,7 +10,7 @@ from pyuwds.types.gen_uuid import gen_uuid
 from pyuwds.uwds_client import UwdsClient
 from pyuwds.uwds import PROVIDER
 from uwds_msgs.msg import Node, Changes, Property
-from pyuwds.types.nodes import CAMERA
+from pyuwds.types.nodes import CAMERA, ENTITY
 from std_msgs.msg import Header
 
 CAMERA_PROPERTIES = []
@@ -77,11 +77,11 @@ class UwdsHumanBridge(UwdsNodeBridge):
         super(UwdsHumanBridge, self).__init__(ros_topic, uwds_world, 'uwds_human_bridge', PeoplePoseArray)
 
     def add_head_node(self, pose, ros_id):
-        node = Node(id = gen_uuid(), name = "head", type = CAMERA, properties = CAMERA_PROPERTIES, pose=pose)
+        node = Node(id=gen_uuid(), name="head", type=CAMERA, properties=CAMERA_PROPERTIES, pose=pose)
         self.add_node(node, ros_id)
 
     def add_body_node(self, pose, ros_id):
-        node = Node(id = gen_uuid(), name = "head", type = CAMERA, pose=pose)
+        node = Node(id=gen_uuid(), name=ros_id, type=ENTITY, pose=pose)
         self.add_node(node, ros_id)
 
     def get_nodes_to_update(self, ros_human_msg, current_nodes):
