@@ -35,7 +35,7 @@ Up to now, this package contains 2 detectors:
 - 3D human body estimation (based on [rt_gene](https://github.com/Tobias-Fischer/rt_gene))
 - 3D human gaze estimation (based on [tf-pose-estimation](https://github.com/ildoonet/tf-pose-estimation))
 
-The default functioning of this package is to detect a 2D human squeleton based on [tf-pose-estimation](https://github.com/ildoonet/tf-pose-estimation) and then project it on depth image so we can get the 3D pose of the body. At the same time, [rt_gene](https://github.com/Tobias-Fischer/rt_gene) provides 3D head/gaze poses (using only rgb image) that we merge with the corresponding body. At the end, we have a full human body with the estimated gaze.
+The default functioning of this package is to detect a 2D human skeleton based on [tf-pose-estimation](https://github.com/ildoonet/tf-pose-estimation) and then project it on depth image so we can get the 3D pose of the body. At the same time, [rt_gene](https://github.com/Tobias-Fischer/rt_gene) provides 3D head/gaze poses (using only rgb image) that we merge with the corresponding body. At the end, we have a full human body with the estimated gaze.
 
 ![](https://github.com/Twarz/human_provider/blob/master/misc/graph_human_provider.png)
 
