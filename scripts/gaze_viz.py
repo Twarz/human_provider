@@ -38,7 +38,7 @@ class GazeViz(object):
 
 if __name__ == '__main__':
     rospy.init_node("body_viz_node") 
-    gaze_topic_sub = "/poses/head"
-    gaze_topic_pub = '/pose3D_markers'
+    gaze_topic_sub = "/humans/poses/3D/gaze"
+    gaze_topic_pub = '/humans/poses/3D/markers'
     GazeViz(gaze_topic_sub, gaze_topic_pub)
     rospy.spin()

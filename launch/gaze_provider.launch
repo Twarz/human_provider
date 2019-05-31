@@ -1,6 +1,6 @@
 <launch>
 
-  <arg name="display_markers" default="True" />
+  <arg name="viz" default="True" />
 
   <arg name="video_namespace" default="/head_mount_kinect2/qhd"/>
   <arg name="video_image_topic" default="image_color_rect"/>
@@ -16,6 +16,6 @@
   </include>
 
   <!-- Only publish markers for vizualisation -->
-  <node pkg="human_provider" type="gaze_viz.py" name="gaze_viz" output="screen" if="$(arg display_markers)"/>
+  <node pkg="human_provider" type="gaze_viz.py" name="gaze_viz" output="screen" if="$(arg viz)"/>
 
 </launch>
