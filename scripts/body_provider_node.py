@@ -34,7 +34,7 @@ class BodyProvider(object):
         self.pose3D_pub = rospy.Publisher('/pose3D', PeoplePoseArray, queue_size=2)
         self.poses_sub = message_filters.Subscriber('/pose', Persons)
         self.depth_sub = message_filters.Subscriber(camera_depth_topic, Image)
-        self.ts = message_filters.ApproximateTimeSynchronizer([self.poses_sub, self.depth_sub], 20, 0.12)
+        self.ts = message_filters.ApproximateTimeSynchronizer([self.poses_sub, self.depth_sub], 20, 0.1)
         self.ts.registerCallback(self.callback)
         
 
@@ -45,7 +45,7 @@ class BodyProvider(object):
             self.body_estimator3D.reset()
             return
 
-        timestamp = depth_img.header.stamp
+        timestamp = persons.header.stamp # we choose 'persons' because it's from rgb and not depth (more used)
 
         # get depth image as numpy array
         np_depth_img = self.bridge.imgmsg_to_cv2(depth_img, "passthrough")
@@ -71,7 +71,7 @@ class BodyProvider(object):
         people_pose_array.header.frame_id = "head_mount_kinect2_rgb_optical_frame"
         people_pose_array.header.stamp = timestamp
         for body_id, body in tracked_bodies3D.items():
-            people_pose = PeoplePose()   
+            people_pose = PeoplePose()
             for part_id, part in body.body.items():
                 point = Point(x=part[0][0], y=part[0][1], z=part[0][2])
                 people_pose.limb_names.append(str(body_id) + ':' + str(part_id))
