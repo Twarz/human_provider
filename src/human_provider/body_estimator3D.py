@@ -11,10 +11,63 @@ from kalman_stabilizer import Stabilizer
 from SequentialTracker import SequentialTracker
 from GenericTracker import TrackedElement
 
+class Point1DStab(object):
+    def __init__(self, v):
+        self.value = v
+        self.v_stab = Stabilizer(state_num=2, measure_num=1, cov_process=0.1, cov_measure=0.1)
+        self.v_stab.state[0] = v
+        self.v_stab.state[1] = v
+
+    def update(self, new_v):
+        self.v_stab.update([new_v])
+        self.value = self.v_stab.state[0]
+
+    def state(self):
+        return self.value
+
+class Point3DStab(object):
+    def __init__(self, x, y, z):
+        self.x_stab = Point1DStab(x)
+        self.y_stab = Point1DStab(y)
+        self.z_stab = Point1DStab(z)
+
+    def update(self, new_x, new_y, new_z):
+        self.x_stab.update([new_x])
+        self.y_stab.update([new_y])
+        self.z_stab.update([new_z])
+
+    def state(self):
+        return self.x_stab.state(), self.y_stab.state(), self.z_stab.state()
+
+class BodyStab3D(object):
+    def __init__(self, body):
+        self.stabs_3D = dict()
+        for limb_id, limb in body.items():
+            print(limb)
+            self.stabs_3D[limb_id] = Point3DStab(limb[0], limb[1], limb[2])
+
+    def update(self, x, y, z):
+        pass
+
+    def state(self):
+        pass
+
+class HumanBody3D(object):
+    """
+    """
+    def stabilize(self, body_id, part_id, x, y, z):
+        if part_id in self.stabilizers[body_id].keys():
+            self.stabilizers[body_id][part_id].update(x, y, z)
+        else:
+            self.stabilizers[body_id][part_id] = Stabilizer3DPoint(x, y, z)
+        return self.stabilizers[body_id][part_id].state()
+
+
 class TrackedBody(TrackedElement):
     def __init__(self, body):
         super(TrackedBody, self).__init__()
         self.body = body
+        self.body_stab = BodyStab3D(self.body)
 
     def compute_distance(self, other_body):
         common_parts = list(set(self.body.keys()) & set(other_body.body.keys()))
@@ -23,7 +76,7 @@ class TrackedBody(TrackedElement):
         np_parts = np.concatenate([self.body[p] for p in common_parts])
         np_other_parts = np.concatenate([other_body.body[p] for p in common_parts])
         return np.sqrt(np.sum(np.sum(np.square(np_parts - np_other_parts), axis=0)))
-        
+
 class BodyEstimator3D(object):
     def __init__(self, camera_info):
         self.pinhole_camera_model = PinholeCameraModel()
@@ -80,40 +133,3 @@ class BodyEstimator3D(object):
             return np_vector3D*depth
 
         return None
-
-class Stabilizer3DPoint(object):
-
-    def __init__(self, x, y, z):
-        self.x_value = x
-        self.y_value = y
-        self.z_value = z
-        self.x_stab = Stabilizer(state_num=2, measure_num=1, cov_process=0.1, cov_measure=0.1)
-        self.x_stab.state[0] = self.x_value
-        self.x_stab.state[1] = self.x_value
-        self.y_stab = Stabilizer(state_num=2, measure_num=1, cov_process=0.1, cov_measure=0.1)
-        self.y_stab.state[0] = self.y_value
-        self.y_stab.state[1] = self.y_value
-        self.z_stab = Stabilizer(state_num=2, measure_num=1, cov_process=0.1, cov_measure=0.1)
-        self.z_stab.state[0] = self.z_value
-        self.z_stab.state[1] = self.z_value
-
-    def update(self, x, y, z):
-        self.x_stab.update([x])
-        self.x_value = self.x_stab.state[0]
-        self.y_stab.update([y])
-        self.y_value = self.y_stab.state[0]
-        self.z_stab.update([z])
-        self.z_value = self.z_stab.state[0]
-
-    def state(self):
-        return self.x_value, self.y_value, self.z_value
-
-class HumanBody3D(object):
-    """
-    """
-    def stabilize(self, body_id, part_id, x, y, z):
-        if part_id in self.stabilizers[body_id].keys():
-            self.stabilizers[body_id][part_id].update(x, y, z)
-        else:
-            self.stabilizers[body_id][part_id] = Stabilizer3DPoint(x, y, z)
-        return self.stabilizers[body_id][part_id].state()
