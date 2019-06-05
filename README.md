@@ -54,8 +54,9 @@ This package includes a bridge to connect the perception stack to [uwds](https:/
 
 ## Installation
 #### Dependencies
+###### Python
 ###### ROS
-###### RT_GENE
+###### RT-GENE
 ###### OpenPose
 ###### Underworlds
 
@@ -92,5 +93,5 @@ roslaunch human_provider uwds_human_provider.launch _what_to_provide:=<"only_gaz
 By default the vizualisation is activated, you can get it on RVIZ, subscribing to the MarkerArray topic '/humans/poses/3D/markers'.
 To deactivate the vizualisation, use the option:
 ```sh
-_viz:="False"
+viz:="False"
 ```
