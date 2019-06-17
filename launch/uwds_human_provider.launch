@@ -13,7 +13,7 @@
       <param name="viz"  value="False" />
     </include>
 
-    <node pkg="human_provider" type="human_provider_node.py" name="human_ros_provider" output="screen"/>
+    <node pkg="human_provider" type="human_merger.py" name="human_merger" output="screen"/>
     <node pkg="human_provider" type="human_viz.py" name="human_viz" output="screen" if="$(arg viz)"/>
     <node pkg="human_provider" type="uwds_human_bridge.py" name="human_uwds_provider" output="screen"/>
   </group>

@@ -44,7 +44,7 @@ class BodyViz(object):
 
 if __name__ == '__main__':
     rospy.init_node("body_viz_node") 
-    body_topic_sub = "/pose3D"
-    body_topic_pub = '/pose3D_markers'
+    body_topic_sub = "/humans/poses/3D/body"
+    body_topic_pub = '/humans/poses/3D/markers'
     BodyViz(body_topic_sub, body_topic_pub)
     rospy.spin()
