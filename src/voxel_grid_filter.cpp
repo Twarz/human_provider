@@ -89,7 +89,6 @@ void cloud_cb (const PointCloudPtr& msg)
     }
     else{
         whole_pc += (*msg);
-        std::cout << "-- add" << std::endl;
     }
 
     // decrease
@@ -113,7 +112,7 @@ void cloud_cb (const PointCloudPtr& msg)
     pcl::PassThrough<pcl::PointXYZI> pass;
     pass.setInputCloud (whole_ptr);
     pass.setFilterFieldName ("intensity");
-    pass.setFilterLimits (0.0, 500000.0);
+    pass.setFilterLimits (0.0, 15.0);
     //pass.setFilterLimitsNegative (true);
     pass.filter (whole_pc);
 
