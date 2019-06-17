@@ -63,35 +63,17 @@ This package includes a bridge to connect the perception stack to [uwds](https:/
 
 ## Run
 #### Choose parts
-To run the whole human provider:
-```sh
-roslaunch human_provider human_provider.launch
-```
+To run the whole human provider:``` roslaunch human_provider human_provider.launch ```
 
-To only run the gaze provider:
-```sh
-roslaunch human_provider gaze_provider.launch
-```
+To only run the gaze provider:``` roslaunch human_provider gaze_provider.launch ```
 
-To only run the body provider:
-```sh
-roslaunch human_provider body_provider.launch
-```
+To only run the body provider:``` roslaunch human_provider body_provider.launch ```
 
 #### ROS-UWDS bridge
-To activate the full workflow with UWDS bridge:
-```sh
-roslaunch human_provider uwds_human_provider.launch
-```
+To activate the full workflow with UWDS bridge:``` roslaunch human_provider uwds_human_provider.launch ```
 
-To activate the full workflow with UWDS bridge with a specific provider:
-```sh
-roslaunch human_provider uwds_human_provider.launch _what_to_provide:=<"only_gaze" OR "only_body" OR "both"(default)>
-```
+To activate the full workflow with UWDS bridge with a specific provider: ``` roslaunch human_provider uwds_human_provider.launch _what_to_provide:=<"only_gaze" OR "only_body" OR "both"(default)> ```
 
 #### Vizualisation
-By default the vizualisation is activated, you can get it on RVIZ, subscribing to the MarkerArray topic '/humans/poses/3D/markers'.
-To deactivate the vizualisation, use the option:
-```sh
-viz:="False"
-```
+By default the vizualisation is activated, you can get it on RVIZ, subscribing to the MarkerArray topic ``` '/humans/poses/3D/markers' ```.
+To deactivate the vizualisation, use the option:``` viz:="False" ```
