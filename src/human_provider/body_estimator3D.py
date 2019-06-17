@@ -67,7 +67,7 @@ class TrackedBody(TrackedElement):
     def __init__(self, body):
         super(TrackedBody, self).__init__()
         self.body = body
-        self.body_stab = BodyStab3D(self.body)
+        #self.body_stab = BodyStab3D(self.body)
 
     def compute_distance(self, other_body):
         common_parts = list(set(self.body.keys()) & set(other_body.body.keys()))
