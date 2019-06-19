@@ -7,13 +7,15 @@
 import rospy
 from sensor_msgs import point_cloud2
 from sensor_msgs.msg import PointCloud2, ChannelFloat32, PointField
+from human_provider.msg import HumanAttention
 import tf2_ros
 import tf2_py as tf2
-from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
+#from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
 from std_msgs.msg import Header
 from jsk_recognition_msgs.msg import PeoplePoseArray
 
 import pybullet as p
+import pybullet_data
 from time import sleep, time
 import math
 import numpy as np
@@ -77,6 +79,7 @@ class PyBulletEnv(object):
             p.connect(p.GUI)
         p.setGravity(0, 0, 0)
         p.setRealTimeSimulation(1)
+        p.setAdditionalSearchPath('/home/twarz/catkin_ws/src/laas_objects/res/urdf')
         self.objects = {}
         self.object_names = {}
 
@@ -84,8 +87,11 @@ class PyBulletEnv(object):
         return self.object_names[object_id]
 
     def add_object(self, urdf_path, object_name, position=ROOT_POSITION, orientation=ROOT_ORIENTATION):
-        self.objects[object_name] = p.loadURDF(urdf_path, position, orientation)
-        self.object_names[self.objects[object_name]] = object_name
+        try:
+            self.objects[object_name] = p.loadURDF(urdf_path, position, orientation)
+            self.object_names[self.objects[object_name]] = object_name
+        except:
+            print("ERROR, can't load: " + urdf_path)
 
     def update_object(self, urdf_path, object_name, position=ROOT_POSITION, orientation=ROOT_ORIENTATION):
         if object_name not in self.objects:
@@ -96,7 +102,7 @@ class PyBulletEnv(object):
 
     def remove_object(self, object_name):
         p.removeBody(self.objects[object_name])
-        del self.object_name[self.objects[object_name]]
+        del self.object_names[self.objects[object_name]]
         del self.objects[object_name]
 
     def get_pose_from_joint_id(self, object_name, joint_id):
@@ -134,17 +140,18 @@ class PyBulletEnv(object):
             # object hit
             object_id = r[0]
             if (object_id >= 0):
+                if object_id not in point_clouds.keys():
+                    point_clouds[object_id] = []
                 hit_position = r[3]
-                point_clouds.get(object_id, []).append(list(hit_position) + [intensities[j]])
+                point_clouds[object_id].append(list(hit_position) + [intensities[j]])
         return point_clouds
 
     def close(self):
         p.disconnect()
 
-'''
 class VisualAttention(object):
     def __init__(self, gaze_topic_sub, point_cloud_topic):
-        self.pc_pub = rospy.Publisher(point_cloud_topic, PointCloud2, queue_size=10)
+        self.pc_pub = rospy.Publisher(point_cloud_topic, HumanAttention, queue_size=10)
         self.poses_sub = rospy.Subscriber(gaze_topic_sub, PeoplePoseArray, callback=self.callback)
         self.pybullet_env = PyBulletEnv(headless=HEADLESS)
         self.pybullet_env.add_object('plane.urdf', 'plane', [0, 0, -1])
@@ -157,7 +164,6 @@ class VisualAttention(object):
             self.cameras[cam_id].update(position, orientation)
         else:
             self.cameras[cam_id] = PyBulletVirtualCamera(RESOLUTION, position=position, orientation=orientation)
-        return self.cameras[cam_id]
 
     def callback(self, people_pose_array):
         if not people_pose_array.poses:
@@ -168,33 +174,37 @@ class VisualAttention(object):
         header.stamp = people_pose_array.header.stamp
         
         for person in people_pose_array.poses:
-            position_intensity_object = []
             for limb_name, limb_pose in zip(person.limb_names, person.poses):
                 person_id, limb_id = limb_name.split(':')
                 #unique_id = int(person_id)*100 + int(20)
+                person_id = '0'
                 head_position = np.array([limb_pose.position.x, limb_pose.position.y, limb_pose.position.z])
                 head_orientation = np.array([limb_pose.orientation.x, limb_pose.orientation.y, limb_pose.orientation.z, limb_pose.orientation.w])
                 self.update_camera(person_id, head_position, head_orientation)
-                p.stepSimulation()
-                position_intensity_object = self.pybullet_env.compute_points_from_camera(camera, SAMPLE_SIZE, MAX_RANGE, sigma*RESOLUTION[0]/2.)
             
-            pc2 = point_cloud2.create_cloud(header, POINT_FIELDS, position_intensity_object)
-            self.pc_pub.publish(pc2)
-        p.removeAllUserDebugItems()
+        for i, c in self.cameras.items():
+            point_clouds = self.pybullet_env.compute_points_from_camera(c, SAMPLE_SIZE, MAX_RANGE, sigma*RESOLUTION[0]/2.)
+            human_attention = HumanAttention()
+            human_attention.human_id = i
+            for pc_id, pc in point_clouds.items():
+                pc_header = Header(stamp=header.stamp, frame_id=header.frame_id)
+                pc2 = point_cloud2.create_cloud(pc_header, POINT_FIELDS, pc)
+                human_attention.object_ids.append(self.pybullet_env.get_name(pc_id))
+                human_attention.attentions.append(pc2)
+            self.pc_pub.publish(human_attention)
+        #p.removeAllUserDebugItems()
         
-'''   
+'''  
 class VisualAttentionUWDS(ReconfigurableClient):
-    def __init__(self):
+    def __init__(self, point_cloud_topic):
+        self.pc_pub = rospy.Publisher(point_cloud_topic, PointCloud2, queue_size=10)
         self.pybullet_env = PyBulletEnv(headless=HEADLESS)
         self.cameras = {}
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
         super(VisualAttentionUWDS, self).__init__("visual_attention", MONITOR)
-        root_id = self.ctx.worlds()[world_name].scene().root_id()
-        self.pybullet_env.add_object('plane.urdf', root_id)
         
-
-    def get_camera(self, cam_id, position, orientation):
+    def update_camera(self, cam_id, position, orientation):
         if cam_id in self.cameras.keys():
             self.cameras[cam_id].update(position, orientation)
         else:
@@ -213,36 +223,53 @@ class VisualAttentionUWDS(ReconfigurableClient):
         # then update the other ones
         for node_id in invalidations.node_ids_updated:
             node = self.ctx.worlds()[world_name].scene().nodes()[node_id]
+            position = [node.position.pose.position.x, node.position.pose.position.y, node.position.pose.position.z]
+            orientation = [node.position.pose.orientation.x, node.position.pose.orientation.y, node.position.pose.orientation.z, node.position.pose.orientation.w]
             if node.type == MESH:
-                position = [node.position.pose.position.x, node.position.pose.position.y, node.position.pose.position.z]
-                orientation = [node.position.pose.orientation.x, node.position.pose.orientation.y, node.position.pose.orientation.z, node.position.pose.orientation.w]
                 urdf_path = node.name+".urdf"
                 self.pybullet_env.update_object(urdf_path, node_id, position, orientation)
             elif node.type == CAMERA:
                 self.update_camera(node_id, position, orientation)
 
         # finally, trigger raycasting
-        sigma = 0.4
         p.stepSimulation()
-        for camera_id, camera in self.cameras.items():
-            camera_frame = world_name + '/' + camera_id
-            point_clouds = self.pybullet_env.compute_points_from_camera(camera, SAMPLE_SIZE, MAX_RANGE, sigma*RESOLUTION[0]/2.)
+        if self.cameras:
+            sigma = 0.4
+            for camera_id, camera in self.cameras.items():
+                camera_frame = world_name + '/' + camera_id
+                point_clouds = self.pybullet_env.compute_points_from_camera(camera, SAMPLE_SIZE, MAX_RANGE, sigma*RESOLUTION[0]/2.)
+                for pc_id, pc in point_clouds.items():
+                    pc_header = Header(stamp=header.stamp)
+                    pc_header.frame_id = header.frame_id
+                    pc2 = point_cloud2.create_cloud(pc_header, POINT_FIELDS, pc)
+                    target_object_frame = world_name + '/' + self.pybullet_env.get_name(pc_id)
+                    #new_cloud = self.tf_listener.transformPointCloud(target_object_frame, pc2)
+                    #new_cloud = do_transform_cloud(pc2, trans)
+                    self.pc_pub.publish(pc2)
 
-            for pc_id, pc in point_clouds.items():
-                pc_header = Header(stamp=header.stamp)
-                pc_header.frame_id = world_name + '/' + self.get_object_name(pc_id)
-                pc2 = point_cloud2.create_cloud(pc_header, POINT_FIELDS, pc)
-                trans = self.tf_buffer.lookup_transform(pc2.header.frame_id, camera_frame, pc2.header.stamp, rospy.Duration(0.0))
-                new_cloud = do_transform_cloud(pc2, trans)
-                self.pc_pub.publish(new_cloud)
+    def onReconfigure(self, worlds):
+        """
+        """
 
+    def onSubscribeChanges(self, world_name):
+        """
+        """
+        pass
+
+    def onUnsubscribeChanges(self, world_name):
+        """
+        """
+        pass
+'''
+'''
 if __name__ == '__main__':
     rospy.init_node("visual_attention")
-    visual_attention = VisualAttentionUWDS()
+    point_cloud_topic = '/humans/visual_attention'
+    visual_attention = VisualAttentionUWDS(point_cloud_topic)
     rospy.spin()
     visual_attention.pybullet_env.close()
-    
-'''
+''' 
+
 if __name__ == '__main__':
     rospy.init_node("visual_attention") 
     gaze_topic_sub = "/humans/poses/3D/gaze"
@@ -250,4 +277,3 @@ if __name__ == '__main__':
     visual_attention = VisualAttention(gaze_topic_sub, point_cloud_topic)
     rospy.spin()
     visual_attention.pybullet_env.close()
-'''

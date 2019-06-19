@@ -4,8 +4,8 @@
 
   <arg name="video_namespace" default="/head_mount_kinect2/qhd"/>
   <arg name="video_image_topic" default="image_color_rect"/>
-  <arg name="rgb_frame_id" default="/kinect2_nonrotated_link"/>
-  <arg name="rgb_frame_id_ros" default="/head_mount_kinect2_link"/>
+  <arg name="rgb_frame_id" default="kinect2_nonrotated_link"/>
+  <arg name="rgb_frame_id_ros" default="head_mount_kinect2_link"/>
 
   <!-- Perception node: https://github.com/Tobias-Fischer/rt_gene -->
   <include file="$(find rt_gene)/launch/estimate_gaze.launch">
