@@ -55,6 +55,8 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 
 #include <unordered_map>
 
+#include <math.h>
+
 typedef pcl::PointXYZI PointT;
 typedef pcl::PointCloud<PointT> PointCloud;
 typedef PointCloud::Ptr PointCloudPtr;
@@ -62,182 +64,176 @@ typedef PointCloud::ConstPtr PointCloudConstPtr;
 
 typedef sensor_msgs::PointCloud2 PointCloudROS;
 
-typedef std::unordered_map<std::string, PointCloudPtr> ObjectsMap; // object id -> pointcloud
-typedef std::unordered_map<std::string, ObjectsMap> HumansMap; // human id -> map<object_id, pointcloud>
-
 //PointCloud whole_pc;
 //PointCloudConstPtr whole_ptr(&whole_pc);
 ros::Publisher pub, pub_dis;
 
-HumansMap humans;
+class ElementAttention{
 
-void cloud_cb (const human_provider::HumanAttention::ConstPtr& msg)
-{
-    std::string human_id = msg->human_id;
+    private:
+    int last_time_seen;
+    int time_from_last_seen;
+    int time_seen_last_time;
+    float max_attention;
+    int max_points;
 
-    // add human if new
-    if (humans.find(human_id) == humans.end()){
-        humans[human_id] = ObjectsMap();
+    PointCloudPtr points_ptr; //(new PointCloud);
+
+    void add_pointcloud(PointCloud new_pointcloud){
+        *this->points_ptr += new_pointcloud;
     }
 
-    // for each pointcloud and object
-    for (size_t i = 0; i < msg->attentions.size (); ++i){
-        // get object name
-        std::string object_name = msg->object_ids[i];
-
-        // get cloud from ros msg
-        PointCloudROS ros_pc = msg->attentions[i];
-        PointCloud pcl_pc;
-        pcl::fromROSMsg(ros_pc, pcl_pc);
-
-        // add object if new
-        if (humans[human_id].find(object_name) == humans[human_id].end()){
-            humans[human_id].insert(std::make_pair (object_name, boost::make_shared<PointCloud>(pcl_pc)));
-        }
-        // if empty, then add the new pc
-        else if (humans.at(human_id).at(object_name)->points.size() == 0){
-            (* humans.at(human_id).at(object_name) ) += pcl_pc;
-        }
-        // merge the two pcs
-        else{
-            pcl::KdTreeFLANN<PointT> kdtree;
-            kdtree.setInputCloud (humans.at(human_id).at(object_name));
-            float radius = 0.1;
-
-            BOOST_FOREACH (const PointT& pt, pcl_pc.points){
-                std::vector<int> pointIdxRadiusSearch; //to store index of surrounding points 
-                std::vector<float> pointRadiusSquaredDistance; // to store distance to surrounding
-
-                if ( kdtree.radiusSearch (pt, radius, pointIdxRadiusSearch, pointRadiusSquaredDistance) > 0 ){
-                    for (size_t i = 0; i < pointIdxRadiusSearch.size (); ++i){
-                        //std::cout << "-- distance -- " << pointRadiusSquaredDistance[i] << std::endl;
-                        humans.at(human_id).at(object_name)->points[ pointIdxRadiusSearch[i] ].intensity += pt.intensity;
-                    }
-                    if(pointIdxRadiusSearch.size () == 0 ){
-                        humans.at(human_id).at(object_name)->push_back(pt);
-                    }
-                }
-                else{
-                    humans.at(human_id).at(object_name)->push_back(pt);
-                }
-            }
-        }
-
-        // decrease
-        BOOST_FOREACH (pcl::PointXYZI& pt, humans.at(human_id).at(object_name)->points){
-            if (pt.intensity > 10.0){
-                pt.intensity = 10.0;
-            }
-            else if (pt.intensity <= 10.0){
-                pt.intensity -= 0.025;
-            }
-            else if (pt.intensity <= 5.0){
-                pt.intensity -= 0.05;
-            }
-            else if (pt.intensity <= 1.0){
-                pt.intensity -= 0.1;
-            }
-        }
-
-        //PointCloud::Ptr cloud_filtered(new PointCloud);
-        pcl::PassThrough<PointT> pass;
-        pass.setInputCloud (humans.at(human_id).at(object_name));
-        pass.setFilterFieldName ("intensity");
-        pass.setFilterLimits (0.0, 11.0);
-        pass.filter (*(humans.at(human_id).at(object_name)));
-
-        // Publish the data
-        //humans.at(human_id).at(object_name)->header.frame_id = msg->header.frame_id;
-        //humans.at(human_id).at(object_name)->header.stamp = msg->header.stamp;
-        
-    }
-    std::cout << "cloud size: " << humans.at(human_id).at("plane")->size() << std::endl;
-    pub.publish (humans.at(human_id).at("plane"));
-}
-/*
-void cloud_cb (const PointCloudPtr& msg)
-{
-    if (whole_pc.points.size() > 0){
-        pcl::KdTreeFLANN<pcl::PointXYZI> kdtree;
-        //pcl::octree::OctreePointCloudSearch<pcl::PointXYZI> octree (0.1);
-        kdtree.setInputCloud (whole_ptr);
-        //octree.addPointsFromInputCloud ();
+    void merge_points(std::vector<PointT, Eigen::aligned_allocator<PointT>> new_points){
+        pcl::KdTreeFLANN<PointT> kdtree;
+        kdtree.setInputCloud (this->points_ptr);
         float radius = 0.1;
-        BOOST_FOREACH (const pcl::PointXYZI& pt, msg->points){
-            
+
+        BOOST_FOREACH (const PointT& pt, new_points){
             std::vector<int> pointIdxRadiusSearch; //to store index of surrounding points 
             std::vector<float> pointRadiusSquaredDistance; // to store distance to surrounding
 
             if ( kdtree.radiusSearch (pt, radius, pointIdxRadiusSearch, pointRadiusSquaredDistance) > 0 ){
                 for (size_t i = 0; i < pointIdxRadiusSearch.size (); ++i){
                     //std::cout << "-- distance -- " << pointRadiusSquaredDistance[i] << std::endl;
-                    whole_pc.points[ pointIdxRadiusSearch[i] ].intensity += pt.intensity;
+                    this->points_ptr->points[pointIdxRadiusSearch[i]].intensity += pt.intensity;
                 }
                 if(pointIdxRadiusSearch.size () == 0 ){
-                    whole_pc.push_back(pt);
+                    this->points_ptr->push_back(pt);
                 }
             }
             else{
-                whole_pc.push_back(pt);
+                this->points_ptr->push_back(pt);
             }
         }
     }
-    else{
-        whole_pc += (*msg);
+
+    bool is_empty(){
+        return (this->points_ptr->points.size() == 0);
     }
 
-    // decrease
-    BOOST_FOREACH (pcl::PointXYZI& pt, whole_pc.points){
-        if (pt.intensity > 10.0){
-            pt.intensity = 10.0;
+
+    public:
+
+    void handle_new_points(PointCloud new_pointcloud){
+        if (this->is_empty()){
+            this->add_pointcloud(new_pointcloud);
         }
-        else if (pt.intensity <= 10.0){
-            pt.intensity -= 0.0025;
+        else {
+            this->merge_points(new_pointcloud.points);
         }
-        else if (pt.intensity <= 5.0){
-            pt.intensity -= 0.005;
+    }
+
+    void forget_step(){
+        // decrease
+        BOOST_FOREACH (PointT& pt, this->points_ptr->points){
+            // TODO: add dtime for a good evolution along the time
+            // 2.302585 is the perfect factor 
+            pt.intensity = 2.35 * log(pt.intensity) + 1.0; // nice curve and f(1)=1, and f(x<1) < x
         }
-        else if (pt.intensity <= 1.0){
-            pt.intensity -= 0.01;
+
+        //PointCloud::Ptr cloud_filtered(new PointCloud);
+        pcl::PassThrough<PointT> pass;
+        pass.setInputCloud (this->points_ptr);
+        pass.setFilterFieldName ("intensity");
+        pass.setFilterLimits (0.0, 1.0);
+        pass.filter (*this->points_ptr);
+    }
+
+};
+
+class HumanVisualAttention {
+
+    typedef std::unordered_map<std::string, ElementAttention> ElementsMap;
+
+    private:
+    ElementsMap elements;
+    int last_time_have_seen_something = 0;
+
+    bool contains(std::string element_id){
+        return this->elements.find(element_id) != this->elements.end();
+    }
+
+    void add_element(std::string element_id){
+        this->elements[element_id] = ElementAttention();
+    }
+
+    ElementAttention get_element(std::string element_id){
+        return this->elements[element_id];
+    }
+
+    // Access specifier 
+    public: 
+    void handle_new_element_attention(std::string element_id, PointCloud new_pointcloud){
+        // add as new element if not already known
+        if (!this->contains(element_id)){
+            this->add_element(element_id);
+        }
+
+        // if new points, then update the current state
+        if (new_pointcloud.points.size() > 0){
+            this->get_element(element_id).handle_new_points(new_pointcloud);
+        }
+        else{
+            this->get_element(element_id).forget_step();
         }
         
     }
-    
-    //PointCloud::Ptr cloud_filtered(new PointCloud);
-    pcl::PassThrough<pcl::PointXYZI> pass;
-    pass.setInputCloud (whole_ptr);
-    pass.setFilterFieldName ("intensity");
-    pass.setFilterLimits (0.0, 15.0);
-    //pass.setFilterLimitsNegative (true);
-    pass.filter (whole_pc);
+    // Data Members 
+  
+    // Member Functions() 
 
-    // Publish the data
-    whole_pc.header.frame_id = msg->header.frame_id;
-    whole_pc.header.stamp = msg->header.stamp;
-    
-    pub.publish (whole_pc);
+};
 
-    PointCloud::Ptr filtered(new PointCloud);
-    pcl::VoxelGrid<pcl::PointXYZI> sor;
-    //pcl::ApproximateVoxelGrid<pcl::PointXYZRGBA> sor;
-    sor.setInputCloud (whole_ptr);
-    sor.setLeafSize (0.05, 0.05, 0.05);
-    sor.filter (*filtered);
-    //sor.setDownsampleAllData(true);
+class HumanManager {
 
-    pub_dis.publish (filtered);
-    std::cout << "--size: " << (*filtered).points.size() << std::endl;
-}
-*/
+    typedef std::unordered_map<std::string, HumanVisualAttention> HumansMap;
+
+    private:
+    HumansMap humans;
+
+    bool contains(std::string human_id){
+        return this->humans.find(human_id) != this->humans.end();
+    }
+
+    void add_human(std::string human_id){
+        this->humans[human_id] = HumanVisualAttention();
+    }
+
+    HumanVisualAttention get_human(std::string human_id){
+        return this->humans[human_id];
+    }
+
+    public:
+
+    void handle_new_ros_msg(const human_provider::HumanAttention::ConstPtr& msg){
+        std::string human_id = msg->human_id;
+
+        // add as new human if not already known
+        if (!this->contains(human_id)){
+            this->add_human(human_id);
+        }
+
+        for (size_t i = 0; i < msg->attentions.size (); ++i){
+            PointCloud pcl_pointcloud;
+            pcl::fromROSMsg(msg->attentions[i], pcl_pointcloud);
+            this->get_human(human_id).handle_new_element_attention(msg->object_ids[i], pcl_pointcloud);
+        }
+
+    }
+};
+
+
 int main (int argc, char** argv)
 {
     // Initialize ROS
     ros::init (argc, argv, "voxel_grid_filter");
     ros::NodeHandle nh;
 
+    HumanManager human_manager;
+
     // Create a ROS subscriber for the input point cloud
     //ros::Subscriber sub = nh.subscribe<PointCloud> ("/humans/visual_attention", 1, cloud_cb);
-    ros::Subscriber sub = nh.subscribe<human_provider::HumanAttention> ("/humans/visual_attention", 1, cloud_cb);
+    ros::Subscriber sub = nh.subscribe<human_provider::HumanAttention> ("/humans/visual_attention", 1, &HumanManager::handle_new_ros_msg, boost::make_shared<HumanManager>(human_manager));
 
     // Create a ROS publisher for the output point cloud
     pub = nh.advertise<PointCloud> ("/humans/whole_visual_attention", 1);
