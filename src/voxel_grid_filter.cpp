@@ -57,6 +57,8 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 
 #include <math.h>
 
+#include <boost/algorithm/clamp.hpp>
+
 typedef pcl::PointXYZI PointT;
 typedef pcl::PointCloud<PointT> PointCloud;
 typedef PointCloud::Ptr PointCloudPtr;
@@ -95,7 +97,10 @@ class ElementAttention{
             if ( kdtree.radiusSearch (pt, radius, pointIdxRadiusSearch, pointRadiusSquaredDistance) > 0 ){
                 for (size_t i = 0; i < pointIdxRadiusSearch.size (); ++i){
                     //std::cout << "-- distance -- " << pointRadiusSquaredDistance[i] << std::endl;
-                    this->points_ptr->points[pointIdxRadiusSearch[i]].intensity += pt.intensity;
+                    if (this->points_ptr->points[pointIdxRadiusSearch[i]].intensity < 1.0){
+                        this->points_ptr->points[pointIdxRadiusSearch[i]].intensity += (pt.intensity*this->points_ptr->points[pointIdxRadiusSearch[i]].intensity);
+                        this->points_ptr->points[pointIdxRadiusSearch[i]].intensity = boost::algorithm::clamp(this->points_ptr->points[pointIdxRadiusSearch[i]].intensity, 0.0, 1.0);
+                    }
                 }
                 if(pointIdxRadiusSearch.size () == 0 ){
                     this->points_ptr->push_back(pt);
@@ -114,6 +119,15 @@ class ElementAttention{
 
     public:
 
+    ElementAttention(){
+        this->points_ptr = boost::shared_ptr<PointCloud>(new PointCloud);
+        this->last_time_seen = 0;
+        this->time_from_last_seen = 0;
+        this->time_seen_last_time = 0;
+        this->max_attention = 0;
+        this->max_points = 0;
+    }
+
     void handle_new_points(PointCloud new_pointcloud){
         if (this->is_empty()){
             this->add_pointcloud(new_pointcloud);
@@ -131,7 +145,7 @@ class ElementAttention{
             pt.intensity = 2.35 * log(pt.intensity) + 1.0; // nice curve and f(1)=1, and f(x<1) < x
         }
 
-        //PointCloud::Ptr cloud_filtered(new PointCloud);
+        // filter intensity
         pcl::PassThrough<PointT> pass;
         pass.setInputCloud (this->points_ptr);
         pass.setFilterFieldName ("intensity");
