@@ -1,0 +1,23 @@
+<launch>
+    <arg name="video_namespace" default="/head_mount_kinect2/qhd"/>
+    <arg name="video_image_topic" default="image_color_rect"/>
+    <arg name="rgb_frame_id" default="kinect2_nonrotated_link"/>
+    <arg name="rgb_frame_id_ros" default="head_mount_kinect2_link"/>
+    <arg name="viz" default="True" />
+    <arg name="uwds" default="True" />
+
+    <!-- Perception node: https://github.com/Tobias-Fischer/rt_gene -->
+    <include file="$(find rt_gene)/launch/estimate_gaze.launch">
+        <arg name="video_namespace" value="$(arg video_namespace)"/>
+        <arg name="video_image_topic" value="$(arg video_image_topic)"/>
+        <arg name="rgb_frame_id" value="$(arg rgb_frame_id)"/>
+        <arg name="rgb_frame_id_ros" value="$(arg rgb_frame_id_ros)"/>
+    </include>
+
+    <!-- Only publish markers for vizualisation -->
+    <node pkg="human_viz" type="body_viz.py" name="gaze_viz" output="screen" if="$(arg viz)"/>
+
+    <!-- Bridge to UWDS -->
+    <node pkg="uwds_human_clients" type="uwds_human_bridge.py" name="uwds_gaze_bridge" output="screen" if="$(arg uwds)"/>
+    
+</launch>
