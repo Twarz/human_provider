@@ -4,7 +4,7 @@ import distutils.log
 distutils.log.set_verbosity(distutils.log.DEBUG)  # Set DEBUG level
 
 d = generate_distutils_setup(
-    packages=['human_provider'],
+    packages=['human_perception'],
     package_dir={'': 'src'}
 )
 

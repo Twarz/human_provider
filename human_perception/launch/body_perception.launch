@@ -3,8 +3,6 @@
     <arg name="resolution" default="432x368" />
     <arg name="camera" default="head_mount_kinect2/qhd/image_color_rect"/>
 
-    <arg name="viz" default="True" />
-
     <!-- Perception node: https://github.com/ildoonet/tf-pose-estimation -->
     <node pkg="tfpose_ros" type="broadcaster_ros.py"  name="open_pose_body2D" required="true">
         <param name="model"  value="$(arg model)" />
@@ -13,9 +11,6 @@
     </node>
 
     <!-- Convert 2D bodies to 3D bodies, using depth camera -->
-    <node pkg="human_provider" type="body_provider.py" name="body_provider" output="screen" required="true"/>
-
-    <!-- Only publish markers for vizualisation -->
-    <node pkg="human_provider" type="body_viz.py" name="body_viz" output="screen" if="$(arg viz)"/>
+    <node pkg="human_perception" type="body_perception.py" name="body_perception" output="screen" required="true"/>
 
 </launch>

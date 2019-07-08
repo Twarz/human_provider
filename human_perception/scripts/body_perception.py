@@ -17,7 +17,7 @@ from jsk_recognition_msgs.msg import PeoplePoseArray, PeoplePose
 from tfpose_ros.msg import Persons
 from tf_pose.common import CocoPart
 
-from human_provider.body_estimator3D import BodyEstimator3D
+from human_perception.body_estimator3D import BodyEstimator3D
 
 import numpy as np
 
