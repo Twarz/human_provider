@@ -1,4 +1,4 @@
-# ROS package for Human Perception
+# Human centered ROS package for Human Robot Interaction
 
 ## Citations
 This repository uses 3 other works, all credits go to them.
