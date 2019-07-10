@@ -1,4 +1,6 @@
-# Human centered ROS package for Human Robot Interaction
+<h1 align="center">
+  Human centered ROS package for <br> Human Robot Interaction
+</h1>
 
 ## Citations
 This repository uses 3 other works, all credits go to them.
