@@ -5,6 +5,7 @@
 - catkin
 - python/cpp
 - GPU (tested on GeForce 1050 for only one perception module)
+- RGB-D camera (in order to compute 3D body poses)
 
 ## [Human Perception Package](./human_perception)
 
