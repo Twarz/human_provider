@@ -3,10 +3,11 @@
     <arg name="video_image_topic" default="image_color_rect"/>
     <arg name="rgb_frame_id" default="kinect2_nonrotated_link"/>
     <arg name="rgb_frame_id_ros" default="head_mount_kinect2_link"/>
-    <arg name="viz" default="True" />
-    <arg name="uwds" default="True" />
 
-    <!-- Perception node: https://github.com/Tobias-Fischer/rt_gene -->
+    <arg name="model" default="mobilenet_thin" />
+    <arg name="resolution" default="432x368" />
+    <arg name="camera" default="head_mount_kinect2/qhd/image_color_rect"/>
+
     <include file="$(find human_perception)/launch/gaze_estimation.launch">
         <arg name="video_namespace" value="$(arg video_namespace)"/>
         <arg name="video_image_topic" value="$(arg video_image_topic)"/>
@@ -14,10 +15,12 @@
         <arg name="rgb_frame_id_ros" value="$(arg rgb_frame_id_ros)"/>
     </include>
 
-    <!-- Only publish markers for vizualisation -->
-    <node pkg="human_viz" type="body_viz.py" name="gaze_viz" output="screen" if="$(arg viz)"/>
+    <include file="$(find human_perception)/launch/body_perception.launch">
+        <arg name="model"  value="$(arg model)" />
+        <arg name="resolution"  value="$(arg resolution)" />
+        <arg name="camera"  value="$(arg camera)" />
+    </include>
 
-    <!-- Bridge to UWDS -->
-    <node pkg="uwds_human_clients" type="uwds_human_bridge.py" name="uwds_gaze_bridge" output="screen" if="$(arg uwds)"/>
-    
+    <node pkg="human_perception" type="human_merger.py" name="human_merger" output="screen"/>
+
 </launch>
