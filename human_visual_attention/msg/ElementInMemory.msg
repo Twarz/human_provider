@@ -1,0 +1,5 @@
+time last_time
+time time_from_last_time
+time last_watchtime
+float64 max_attention_value
+int64 max_attention_count

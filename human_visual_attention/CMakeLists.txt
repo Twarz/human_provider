@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(human_provider)
+project(human_visual_attention)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 #add_compile_options(-std=c++11)
@@ -13,9 +13,6 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   sensor_msgs
   geometry_msgs
-  image_geometry
-  cv_bridge
-  tf2_py
   tf2_ros
   message_generation
 )
@@ -57,6 +54,10 @@ catkin_python_setup()
 add_message_files(
   FILES
   HumanAttention.msg
+  HumanAttentionArray.msg
+  ElementInMemory.msg
+  HumanMemory.msg
+  HumanMemoryArray.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -78,6 +79,7 @@ generate_messages(
   DEPENDENCIES
   std_msgs
   sensor_msgs
+  geometry_msgs
 )
 
 ################################################
