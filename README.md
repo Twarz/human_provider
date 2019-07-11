@@ -18,11 +18,11 @@
 - [x] human head in bullet
 - [ ] human body in bullet
 - [x] PR2 in bullet
-- [ ] Pepper in bullet
+- [X] Pepper in bullet
 - [ ] change sigma regarding head speed
-- [ ] compute center of attention first
-- [ ] get element of attention
-- [ ] compute intensity based on distance with center
+- [X] compute center of attention first
+- [X] get element of attention
+- [X] compute intensity based on distance with center
 - [X] define an attention structure for each element
 - [ ] store time of attention
 - [ ] clean cpp code with headers
@@ -49,5 +49,5 @@
 - [x] viz of head
 - [x] viz of human (body+head)
 - [ ] refactoring for common code
-- [ ] viz of human attention
+- [ ] viz of human attention (WIP)
 - [ ] viz of human memory
