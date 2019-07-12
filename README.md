@@ -4,6 +4,7 @@
 - ROS (tested on Ubuntu1804/Melodic)
 - catkin
 - python/cpp
+- pybullet
 - GPU (tested on GeForce 1050 for only one perception module)
 - RGB-D camera (in order to compute 3D body poses)
 
@@ -16,6 +17,13 @@
 - /humans/visual_attention
 - /humans/memory
 
+## Vocabulary
+- Body: parts of the body
+- Gaze: gaze estimation
+- Complete body: parts of the body + gaze estimation
+- Center of attention: perfect projection along the gaze estimation (Point XYZ)
+- Visual attention: current attention of one human
+- Memory: cumulated visual attention over the time
 
 ## [Human Perception Package](./human_perception)
 - [x] rt-gene integration
