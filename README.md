@@ -36,10 +36,13 @@
 - [x] define an attention structure for each element
 - [ ] store time of attention
 - [ ] clean cpp code with headers
+- [ ] publish human attention cumulated (WIP)
+- [ ] publish discrete human attention cumulated (WIP)
+- [ ] publish human memory (WIP)
 
 ## [UWDS Human Clients Package](./uwds_human_clients)
-- [x] rt-gene to uwds
-- [ ] body to uwds
+- [x] gaze to uwds
+- [x] body to uwds
 - [ ] PR2 to uwds
 - [ ] Pepper to uwds
 - [ ] create a new World for each Human
