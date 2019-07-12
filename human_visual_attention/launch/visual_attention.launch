@@ -1,35 +1,16 @@
 <launch>
 
-  <arg name="what_to_provide" default="both" /> <!-- what_to_provide can be ["both", "only_gaze", "only_body"]-->
   <arg name="viz" default="True" />
+  <arg name="uwds_world_name" default="robot/gazes"/>
+  <arg name="bullet_headless" default="True"/>
   
-  <group if="$(eval arg('what_to_provide') == 'both')">
+  <node pkg="human_visual_attention" type="visual_attention.py" name="visual_attention" output="screen">
+    <param name="default_inputs" value="$(arg uwds_world_name)"/>
+    <param name="headless" value="$(arg bullet_headless)"/>
+  </node>
 
-    <include file="$(find human_provider)/launch/gaze_provider.launch">
-      <param name="viz"  value="False" />
-    </include>
+  <node pkg="human_visual_attention" type="voxel_grid_filter" name="attention_over_elements" output="screen"/>
 
-    <include file="$(find human_provider)/launch/body_provider.launch">
-      <param name="viz"  value="False" />
-    </include>
-
-    <node pkg="human_provider" type="human_merger.py" name="human_merger" output="screen"/>
-    <node pkg="human_provider" type="human_viz.py" name="human_viz" output="screen" if="$(arg viz)"/>
-    <node pkg="human_provider" type="uwds_human_bridge.py" name="human_uwds_provider" output="screen"/>
-  </group>
-
-  <group if="$(eval arg('what_to_provide') == 'only_gaze')">
-    <include file="$(find human_provider)/launch/gaze_provider.launch">
-      <param name="viz"  value="$(arg viz)" />
-    </include>
-    <node pkg="human_provider" type="uwds_human_bridge.py" name="gaze_uwds_provider" output="screen"/>
-  </group>
-
-  <group if="$(eval arg('what_to_provide') == 'only_body')">
-    <include file="$(find human_provider)/launch/body_provider.launch">
-      <param name="viz"  value="$(arg viz)" />
-    </include>
-    <node pkg="human_provider" type="uwds_human_bridge.py" name="body_uwds_provider" output="screen"/>
-  </group>
+  <node pkg="human_viz" type="attention_viz.py" name="attention_viz" output="screen"/>
 
 </launch>
