@@ -7,6 +7,16 @@
 - GPU (tested on GeForce 1050 for only one perception module)
 - RGB-D camera (in order to compute 3D body poses)
 
+## ROS Topics 
+- /humans/poses/body/2D
+- /humans/poses/body/3D
+- /humans/poses/body/3D/markers
+- /humans/poses/gaze/3D
+- /humans/poses/gaze/3D/markers
+- /humans/visual_attention
+- /humans/memory
+
+
 ## [Human Perception Package](./human_perception)
 - [x] rt-gene integration
 - [x] openpose integration
@@ -16,14 +26,14 @@
 ## [Human Visual Attention Package](./human_visual_attention)
 - [x] dynamic world
 - [x] human head in bullet
-- [ ] human body in bullet
+- [x] human body in bullet
 - [x] PR2 in bullet
-- [X] Pepper in bullet
+- [x] Pepper in bullet
 - [ ] change sigma regarding head speed
-- [X] compute center of attention first
-- [X] get element of attention
-- [X] compute intensity based on distance with center
-- [X] define an attention structure for each element
+- [x] compute center of attention first
+- [x] get element of attention
+- [x] compute intensity based on distance with center
+- [x] define an attention structure for each element
 - [ ] store time of attention
 - [ ] clean cpp code with headers
 
@@ -49,5 +59,5 @@
 - [x] viz of head
 - [x] viz of human (body+head)
 - [ ] refactoring for common code
-- [ ] viz of human attention (WIP)
+- [X] viz of human attention
 - [ ] viz of human memory
