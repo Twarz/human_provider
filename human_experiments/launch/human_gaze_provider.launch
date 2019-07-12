@@ -15,7 +15,7 @@
     </include>
 
     <!-- Only publish markers for vizualisation -->
-    <node pkg="human_viz" type="body_viz.py" name="gaze_viz" output="screen" if="$(arg viz)"/>
+    <node pkg="human_viz" type="gaze_viz.py" name="gaze_viz" output="screen" if="$(arg viz)"/>
 
     <!-- Bridge to UWDS -->
     <node pkg="uwds_human_clients" type="uwds_human_bridge.py" name="uwds_gaze_bridge" output="screen" if="$(arg uwds)"/>
