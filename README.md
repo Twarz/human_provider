@@ -4,6 +4,7 @@
 - ROS (tested on Ubuntu1804/Melodic)
 - catkin
 - python/cpp
+- pybullet
 - GPU (tested on GeForce 1050 for only one perception module)
 - RGB-D camera (in order to compute 3D body poses)
 
@@ -16,6 +17,13 @@
 - /humans/visual_attention
 - /humans/memory
 
+## Vocabulary
+- Body: parts of the body
+- Gaze: gaze estimation
+- Complete body: parts of the body + gaze estimation
+- Center of attention: perfect projection along the gaze estimation (Point XYZ)
+- Visual attention: current attention of one human
+- Memory: cumulated visual attention over the time
 
 ## [Human Perception Package](./human_perception)
 - [x] rt-gene integration
@@ -36,10 +44,13 @@
 - [x] define an attention structure for each element
 - [ ] store time of attention
 - [ ] clean cpp code with headers
+- [ ] publish human attention cumulated (WIP)
+- [ ] publish discrete human attention cumulated (WIP)
+- [ ] publish human memory (WIP)
 
 ## [UWDS Human Clients Package](./uwds_human_clients)
-- [x] rt-gene to uwds
-- [ ] body to uwds
+- [x] gaze to uwds
+- [x] body to uwds
 - [ ] PR2 to uwds
 - [ ] Pepper to uwds
 - [ ] create a new World for each Human
