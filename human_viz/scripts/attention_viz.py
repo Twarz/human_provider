@@ -62,7 +62,7 @@ class AttentionViz(object):
 
 if __name__ == '__main__':
     rospy.init_node("attention_viz_node") 
-    attention_topic_sub = "/humans/visual_attention"
+    attention_topic_sub = "/humans/visual_attention/memory"
     body_topic_pub = '/humans/visual_attention/markers'
     AttentionViz(attention_topic_sub, body_topic_pub)
     rospy.spin()

@@ -29,7 +29,7 @@ from pyuwds.uwds import MONITOR
 ROOT_POSITION = np.array([0., 0., 0.]) # 1 meter above ground
 ROOT_ORIENTATION = np.array([0., 0., 0., 1.])
 DEFAULT_AXIS = np.eye(3)
-SAMPLE_SIZE = 512
+SAMPLE_SIZE = 128
 RESOLUTION = np.array([256, 256])
 MAX_RANGE = 5
 
@@ -152,6 +152,7 @@ class PyBulletEnv(object):
                 d = min(math.sqrt(np.sum((np.array(center_point) - np.array(hit_position))**2)), max_radius) # clamped between 0 and 2
                 intensity = 1.0 - (d / max_radius)
                 #intensity *= intensity_scale
+                intensity *= 0.05
                 if object_id != element_center_attention:
                     intensity *= 0.75
 
