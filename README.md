@@ -44,7 +44,7 @@
 - [x] define an attention structure for each element
 - [ ] store time of attention
 - [ ] clean cpp code with headers
-- [ ] publish human attention cumulated (WIP)
+- [x] publish human attention cumulated
 - [ ] publish discrete human attention cumulated (WIP)
 - [ ] publish human memory (WIP)
 
