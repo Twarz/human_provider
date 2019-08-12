@@ -70,15 +70,13 @@ typedef PointCloud::ConstPtr PointCloudConstPtr;
 
 typedef sensor_msgs::PointCloud2 PointCloudROS;
 
-//PointCloud whole_pc;
-//PointCloudConstPtr whole_ptr(&whole_pc);
-ros::Publisher pub_cumulated, pub_dis;
+ros::Publisher pub_cumulated, pub_memory;
 
 class ElementAttention{
 
     private:
 
-    PointCloudPtr points_ptr; //(new PointCloud);
+    PointCloudPtr points_ptr;
 
     void add_pointcloud(PointCloud new_pointcloud){
         *this->points_ptr += new_pointcloud;
@@ -88,7 +86,7 @@ class ElementAttention{
     void merge_points(std::vector<PointT, Eigen::aligned_allocator<PointT>> new_points){
         pcl::KdTreeFLANN<PointT> kdtree;
         kdtree.setInputCloud (this->points_ptr);
-        float radius = 0.1;
+        float radius = 0.15;
 
         BOOST_FOREACH (const PointT& pt, new_points){
             std::vector<int> pointIdxRadiusSearch; //to store index of surrounding points 
@@ -98,7 +96,8 @@ class ElementAttention{
                 for (size_t i = 0; i < pointIdxRadiusSearch.size (); ++i){
                     //std::cout << "-- distance -- " << pointRadiusSquaredDistance[i] << std::endl;
                     if (this->points_ptr->points[pointIdxRadiusSearch[i]].intensity < 1.0){
-                        this->points_ptr->points[pointIdxRadiusSearch[i]].intensity += sqrt((pt.intensity*this->points_ptr->points[pointIdxRadiusSearch[i]].intensity));
+                        //this->points_ptr->points[pointIdxRadiusSearch[i]].intensity += sqrt((pt.intensity*this->points_ptr->points[pointIdxRadiusSearch[i]].intensity));
+                        this->points_ptr->points[pointIdxRadiusSearch[i]].intensity += pt.intensity;
                         this->points_ptr->points[pointIdxRadiusSearch[i]].intensity = boost::algorithm::clamp(this->points_ptr->points[pointIdxRadiusSearch[i]].intensity, 0.0, 1.0);
                         
                         if (this->points_ptr->points[pointIdxRadiusSearch[i]].intensity > this->max_attention){
@@ -277,8 +276,15 @@ class HumanManager {
     public:
 
     void handle_new_ros_msg(const human_visual_attention::HumanAttentionArray::ConstPtr& msg){
+
+        std::cout << "received!" << std::endl;
+
         human_visual_attention::HumanAttentionArray attention_array;
         attention_array.header = msg->header;
+
+        human_visual_attention::HumanMemoryArray memory_array;
+        memory_array.header = msg->header;
+
         // for each human
         BOOST_FOREACH (const human_visual_attention::HumanAttention& human, msg->humans){
             std::string human_id = human.human_id;
@@ -296,6 +302,9 @@ class HumanManager {
             new_attention.element_of_attention = human.element_of_attention;
             new_attention.point_of_attention = human.point_of_attention;
 
+            human_visual_attention::HumanMemory human_memory;
+            human_memory.human_id = human.human_id;
+
             // for each element
             for (size_t i = 0; i < human.elements.size (); ++i){
                 PointCloud pcl_pointcloud;
@@ -304,7 +313,7 @@ class HumanManager {
             }
 
             // get pointcloud for each human, and each element
-            for (auto element : this->get_human(human_id).get_elements()) {
+            for (auto element : this->get_human(human_id).get_elements()){
                 new_attention.element_ids.push_back(element.first);
                 PointCloudPtr pc = element.second.get_points();
                 sensor_msgs::PointCloud2 pc2;
@@ -317,10 +326,13 @@ class HumanManager {
                 element_msg.last_watchtime = element.second.last_watchtime;
                 element_msg.max_attention_value = element.second.max_attention;
                 element_msg.max_attention_count = element.second.max_points;
+                human_memory.elements.push_back(element_msg);
             }
+            memory_array.humans.push_back(human_memory);
             attention_array.humans.push_back(new_attention);
         }
-        pub_cumulated.publish (attention_array);
+        pub_memory.publish(memory_array);
+        pub_cumulated.publish(attention_array);
     }
 };
 
@@ -336,18 +348,21 @@ int main (int argc, char** argv)
     // Create a ROS subscriber for the input point cloud
     //ros::Subscriber sub = nh.subscribe<PointCloud> ("/humans/visual_attention", 1, cloud_cb);
     //ros::Subscriber sub = nh.subscribe<human_provider::HumanAttention> ("/humans/visual_attention", 10, &HumanManager::handle_new_ros_msg, boost::make_shared<HumanManager>(human_manager));
-    ros::Subscriber sub = nh.subscribe<human_visual_attention::HumanAttentionArray> ("/humans/visual_attention/current", 10, &HumanManager::handle_new_ros_msg, &human_manager);
+    ros::Subscriber sub = nh.subscribe<human_visual_attention::HumanAttentionArray> ("/humans/visual/current", 1, &HumanManager::handle_new_ros_msg, &human_manager);
 
     // Create a ROS publisher for the output point cloud
-    pub_cumulated = nh.advertise<human_visual_attention::HumanAttentionArray> ("/humans/visual_attention/cumulated", 1);
+    pub_cumulated = nh.advertise<human_visual_attention::HumanAttentionArray> ("/humans/visual/cumulated", 1);
 
-    // Create a ROS publisher for the output point cloud
-    // pub_dis = nh.advertise<PointCloud> ("/humans/discrete_visual_attention", 1);
+    // Create a ROS publisher for the output element data
+    pub_memory = nh.advertise<human_visual_attention::HumanMemoryArray> ("/humans/visual/memory", 1);
 
     // Spin
+    ros::spin();
+    /*
     ros::Rate r(30); // 30 hz
     while (ros::ok()){
         ros::spinOnce();
         r.sleep();
     }
+    */
 }

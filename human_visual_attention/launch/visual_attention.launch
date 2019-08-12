@@ -13,4 +13,6 @@
 
   <node pkg="human_viz" type="attention_viz.py" name="attention_viz" output="screen"/>
 
+  <node pkg="human_viz" type="memory_viz.py" name="memory_viz" output="screen"/>
+
 </launch>
