@@ -395,7 +395,7 @@ class VisualAttentionUWDS(ReconfigurableClient):
         # finally, trigger raycasting
         p.stepSimulation()
         attentions = HumanAttentionArray()
-        attentions.header.frame_id = 'webcam_link'
+        attentions.header.frame_id = 'head_mount_kinect2_rgb_link'
         attentions.header.stamp = self.last_header.stamp
         if self.cameras:
             sigma = 0.4
