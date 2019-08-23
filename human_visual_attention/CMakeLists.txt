@@ -162,8 +162,8 @@ add_definitions(${PCL_DEFINITIONS})
 #   ${catkin_LIBRARIES}
 # )
 
-add_executable(voxel_grid_filter src/voxel_grid_filter.cpp)
-target_link_libraries(voxel_grid_filter ${PCL_LIBRARIES} ${catkin_LIBRARIES})
+# add_executable(voxel_grid_filter src/voxel_grid_filter.cpp)
+# target_link_libraries(voxel_grid_filter ${PCL_LIBRARIES} ${catkin_LIBRARIES})
 
 #############
 ## Install ##
