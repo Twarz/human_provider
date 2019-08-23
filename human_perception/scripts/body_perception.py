@@ -4,6 +4,11 @@
 @Kevin Cortacero <cortacero.k31130@gmail.com>
 """
 
+import tensorflow as tf
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+tf.keras.backend.set_session(tf.Session(config=config))
+
 import rospy
 import message_filters
 from std_msgs.msg import Header
@@ -34,7 +39,7 @@ class BodyProvider(object):
         self.pose3D_pub = rospy.Publisher('/humans/poses/3D/body', PeoplePoseArray, queue_size=2)
         self.poses_sub = message_filters.Subscriber('/humans/poses/2D/body', Persons)
         self.depth_sub = message_filters.Subscriber(camera_depth_topic, Image)
-        self.ts = message_filters.ApproximateTimeSynchronizer([self.poses_sub, self.depth_sub], 20, 0.1)
+        self.ts = message_filters.ApproximateTimeSynchronizer([self.poses_sub, self.depth_sub], 20, 0.15)
         self.ts.registerCallback(self.callback)
         
 

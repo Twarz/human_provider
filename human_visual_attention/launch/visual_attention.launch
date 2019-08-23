@@ -1,15 +1,17 @@
 <launch>
 
   <arg name="viz" default="True" />
-  <arg name="uwds_world_name" default="robot/gazes"/>
-  <arg name="bullet_headless" default="True"/>
+  <arg name="uwds_world_name" default="robot/merged_stable"/>
+  <arg name="bullet_headless" default="False"/>
   
   <node pkg="human_visual_attention" type="visual_attention.py" name="visual_attention" output="screen">
     <param name="default_inputs" value="$(arg uwds_world_name)"/>
     <param name="headless" value="$(arg bullet_headless)"/>
   </node>
 
+  <!--
   <node pkg="human_visual_attention" type="voxel_grid_filter" name="attention_over_elements" output="screen"/>
+  -->
 
   <node pkg="human_viz" type="attention_viz.py" name="attention_viz" output="screen"/>
 

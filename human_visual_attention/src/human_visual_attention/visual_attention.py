@@ -36,7 +36,7 @@ ROOT_POSITION = np.array([0., 0., 0.]) # 1 meter above ground
 ROOT_ORIENTATION = np.array([0., 0., 0., 1.])
 DEFAULT_AXIS = np.eye(3)
 SAMPLE_SIZE = 128
-RESOLUTION = np.array([256, 256])
+RESOLUTION = np.array([128, 128])
 MAX_RANGE = 20
 
 POINT_FIELDS = [PointField('x', 0, PointField.FLOAT32, 1),
@@ -172,12 +172,12 @@ class PyBulletEnv(object):
             p.connect(p.DIRECT)
         else:
             p.connect(p.GUI)
-        p.setGravity(0, 0, -10)
+        p.setGravity(0, 0, 0)
         p.setRealTimeSimulation(1)
-        #p.configureDebugVisualizer(p.COV_ENABLE_GUI,0)
-        p.configureDebugVisualizer(p.COV_ENABLE_SEGMENTATION_MARK_PREVIEW,0)
+        p.configureDebugVisualizer(p.COV_ENABLE_GUI,0)
+        #p.configureDebugVisualizer(p.COV_ENABLE_SEGMENTATION_MARK_PREVIEW,0)
         #p.configureDebugVisualizer(pybullet.COV_ENABLE_DEPTH_BUFFER_PREVIEW,0)
-        p.configureDebugVisualizer(p.COV_ENABLE_RGB_BUFFER_PREVIEW,0)
+        #p.configureDebugVisualizer(p.COV_ENABLE_RGB_BUFFER_PREVIEW,0)
         p.setAdditionalSearchPath('/home/twarz/catkin_ws/src/laas_objects/res/urdf')
         self.objects = {}
         self.object_names = {}
@@ -216,6 +216,7 @@ class PyBulletEnv(object):
 
     
     def compute_points_from_camera(self, camera, sample_size, max_range, sigma, sigma_pure, dt):
+        p.removeAllUserDebugItems()
         ray_from = []
         ray_to = []
         
@@ -234,10 +235,13 @@ class PyBulletEnv(object):
         ortho = camera.trans_mat.dot(target_matrix)
         rayTo = (ortho + (camera.forward-camera.position)[:,np.newaxis]) * max_range
 
+        rayMissColor = [0, 1, 0]
+
         for s in range(sample_size):
             target = rayTo[:,s]
             ray_from.append(camera.position)
             ray_to.append(target)
+            
 
         hits = p.rayTestBatch(ray_from, ray_to)
         
@@ -248,9 +252,10 @@ class PyBulletEnv(object):
         max_radius = 2.0
 
         # name, pos, intensity
-        selected_hits = self.compute_intensity(hits[0], hits[1:], max_radius, gamma=0.75, penalty=camera.speed.value, dt=dt)
+        selected_hits = self.compute_intensity(hits[0], hits[1:], max_radius, gamma=0.75, penalty=1.0, dt=dt)
 
         for h in selected_hits:
+            p.addUserDebugLine(camera.position, [h[1], h[2], h[3]], rayMissColor)
             if h[0] not in point_clouds.keys():
                 point_clouds[h[0]] = []
             point_clouds[h[0]].append(h[1:])
@@ -288,7 +293,7 @@ class PyBulletEnv(object):
             if h_object != hit_center[0]:
                 h_intensity = h_intensity * gamma
 
-            if h_intensity > 0.000:
+            if h_intensity > 0.0001:
                 selected_hits.append([h_object, h_pos[0], h_pos[1], h_pos[2], h_intensity])
         return selected_hits
 
@@ -345,9 +350,9 @@ class VisualAttentionUWDS(ReconfigurableClient):
         self.cameras = {}
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
-        self.pybullet_env.add_object('plane.urdf', 'plane', [0, 0, -2])
-        self.pybullet_env.add_object('table.urdf', 'table', [-1, 0, -1.5])
-        self.rate = rospy.Rate(30) # 30hz
+        #self.pybullet_env.add_object('plane.urdf', 'plane', [0, 0, -2])
+        #self.pybullet_env.add_object('table.urdf', 'table', [-1, 0, -1.5])
+        self.rate = rospy.Rate(20) # 30hz
         self.last_stamp = None
 
         # add PR2 robot
@@ -456,7 +461,7 @@ class VisualAttentionUWDS(ReconfigurableClient):
                 self.pybullet_env.update_object(urdf_path, node_id, position, orientation)
             elif node.type == CAMERA:
                 self.pybullet_env.update_object('human_head.urdf', node_id, position, orientation)
-                self.pybullet_env.update_object('human_body.urdf', node_id+'_body', position)
+                #self.pybullet_env.update_object('human_body.urdf', node_id+'_body', position)
                 self.update_camera(node_id, position, orientation, dt)
 
         self.last_header = header
