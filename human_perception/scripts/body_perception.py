@@ -39,7 +39,7 @@ class BodyProvider(object):
         self.pose3D_pub = rospy.Publisher('/humans/poses/3D/body', PeoplePoseArray, queue_size=2)
         self.poses_sub = message_filters.Subscriber('/humans/poses/2D/body', Persons)
         self.depth_sub = message_filters.Subscriber(camera_depth_topic, Image)
-        self.ts = message_filters.ApproximateTimeSynchronizer([self.poses_sub, self.depth_sub], 20, 0.15)
+        self.ts = message_filters.ApproximateTimeSynchronizer([self.poses_sub, self.depth_sub], 30, 0.1)
         self.ts.registerCallback(self.callback)
         
 

@@ -32,8 +32,9 @@ class AttentionViz(object):
                 markers.colors.append(ColorRGBA(r=0, g=1, b=0, a=1))
 
             for element in h.elements:
+                max_i = max([p[3] for p in point_cloud2.read_points(element, field_names = ("x", "y", "z", "intensity"), skip_nans=True)])
                 for p in point_cloud2.read_points(element, field_names = ("x", "y", "z", "intensity"), skip_nans=True):
-                    (r, g, b) = colorsys.hsv_to_rgb(min(1-p[3], 0.8333), 1.0, 1.0)
+                    (r, g, b) = colorsys.hsv_to_rgb(min(1-(p[3]/max_i), 0.8333), 1.0, 1.0)
                     markers.points.append(Point(x=p[0], y=p[1], z=p[2]))
                     markers.colors.append(ColorRGBA(r=r, g=g, b=b, a=1))
 

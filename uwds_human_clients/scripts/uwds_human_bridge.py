@@ -12,7 +12,13 @@ from pyuwds.uwds import PROVIDER
 from uwds_msgs.msg import Node, Changes, Property
 from pyuwds.types.nodes import CAMERA, ENTITY
 from std_msgs.msg import Header
-from geometry_msgs.msg import PoseWithCovariance
+from geometry_msgs.msg import PoseWithCovariance, Point, Pose, Quaternion
+from tf.transformations import *
+
+def transformation_matrix(t, q):
+    translation_mat = translation_matrix(t)
+    rotation_mat = quaternion_matrix(q)
+    return numpy.dot(translation_mat, rotation_mat)
 
 CAMERA_PROPERTIES = []
 CAMERA_PROPERTIES.append(Property(name="hfov",     data="60.0"))
@@ -80,7 +86,15 @@ class UwdsHumanBridge(UwdsNodeBridge):
         super(UwdsHumanBridge, self).__init__(ros_topic, uwds_world, 'uwds_human_bridge', PeoplePoseArray)
 
     def add_head_node(self, pose, ros_id):
-        node = Node(id=gen_uuid(), name="head", type=CAMERA, properties=CAMERA_PROPERTIES, position=pose)
+        t = [pose.position.x, pose.position.y, pose.position.z]
+        q = [pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w]
+        offset = euler_matrix(0, 0, math.radians(90), "rxyz")
+        transform = numpy.dot(transformation_matrix(t, q), offset)
+        position = translation_from_matrix(transform)
+        quaternion = quaternion_from_matrix(transform)
+
+        new_pose = PoseWithCovariance(pose=Pose(position=Point(x=position[0], y=position[1], z=position[2]), orientation=Quaternion(x=quaternion[0], y=quaternion[1], z=quaternion[2], w=quaternion[3])))
+        node = Node(id='human_demo', name="head", type=CAMERA, properties=CAMERA_PROPERTIES, position=new_pose)
         self.add_node(node, ros_id)
 
     def add_body_node(self, pose, ros_id):

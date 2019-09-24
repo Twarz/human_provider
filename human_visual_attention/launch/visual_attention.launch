@@ -2,11 +2,13 @@
 
   <arg name="viz" default="True" />
   <arg name="uwds_world_name" default="robot/merged_stable"/>
-  <arg name="bullet_headless" default="False"/>
+  <arg name="bullet_headless" default="True"/>
+  <arg name="robot_urdf" default="$(find uwds)/res/urdf/pr2.urdf"/>
   
   <node pkg="human_visual_attention" type="visual_attention.py" name="visual_attention" output="screen">
     <param name="default_inputs" value="$(arg uwds_world_name)"/>
     <param name="headless" value="$(arg bullet_headless)"/>
+    <param name="robot_urdf" value="$(arg robot_urdf)"/>
   </node>
 
   <!--
@@ -15,6 +17,6 @@
 
   <node pkg="human_viz" type="attention_viz.py" name="attention_viz" output="screen"/>
 
-  <node pkg="human_viz" type="memory_viz.py" name="memory_viz" output="screen"/>
+  <!--node pkg="human_viz" type="memory_viz.py" name="memory_viz" output="screen"/-->
 
 </launch>

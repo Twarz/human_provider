@@ -20,7 +20,7 @@ class HumanMerger(object):
         self.human_pose_pub = rospy.Publisher(human_full_pose_topic, PeoplePoseArray, queue_size=5)
         self.human_body_pose_sub = message_filters.Subscriber(human_body_pose_topic, PeoplePoseArray)
         self.human_gaze_pose_sub = message_filters.Subscriber(human_gaze_pose_topic, PeoplePoseArray)
-        self.ts = message_filters.ApproximateTimeSynchronizer([self.human_body_pose_sub, self.human_gaze_pose_sub], 40, 0.3)
+        self.ts = message_filters.ApproximateTimeSynchronizer([self.human_body_pose_sub, self.human_gaze_pose_sub], 30, 0.1)
         self.ts.registerCallback(self.callback)
         self.tf = TransformListener()
 
@@ -54,7 +54,6 @@ class HumanMerger(object):
         return None
 
     def find_nearest_gaze_pose(self, nose_pose, people_gaze):
-        print
         nearest_gaze_pose = None
         min_distance = 10e10
 
@@ -63,7 +62,6 @@ class HumanMerger(object):
                 np_gaze = np.array([gaze_pose.position.x, gaze_pose.position.y, gaze_pose.position.z])
                 np_nose = np.array([nose_pose.position.x, nose_pose.position.y, nose_pose.position.z])
                 d = np.sqrt(np.sum(np.square(np_gaze-np_nose)))
-                print(d)
                 if d < 4. and d < min_distance:
                     nearest_gaze_pose = gaze_pose
                     min_distance = d
